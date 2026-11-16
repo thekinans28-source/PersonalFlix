@@ -66,4 +66,19 @@
     margin-left: 5vw;
     margin-right: 5vw;
   }
+
+  
+/* V2 DOWNLOAD MANAGER */
+.card-actions{padding:0 2px 4px}
+.download-btn{width:100%;margin-top:9px;border:1px solid #383842;background:#1b1b24;color:#f4f4f7;border-radius:7px;padding:9px 7px;font-size:10px;font-weight:750}
+.download-btn:not(:disabled):active{background:var(--red);border-color:var(--red)}
+.download-btn:disabled{opacity:.4;cursor:not-allowed}
+.download-done{display:block;margin-top:9px;color:#8df0b2;font-size:10px}
+.download-progress{margin-top:9px;padding:9px;background:#171720;border:1px solid var(--line);border-radius:8px}
+.download-progress[hidden]{display:none}
+.progress-track{height:5px;background:#343440;border-radius:8px;overflow:hidden}
+.progress-track span{display:block;width:0;height:100%;background:var(--red);transition:width .15s}
+.download-progress small{display:block;color:#c8c8d0;font-size:9px;margin-top:7px}
+.cancel-download{border:0;background:transparent;color:#ff777e;padding:5px 0 0;font-size:10px}
+
 }
