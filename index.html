@@ -1,13 +1,14 @@
+
 <!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#09090d">
-  <meta name="description" content="Personal video library">
+  <meta name="description" content="Personalflix - Your private entertainment sanctuary.">
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./css/style.css">
-  <title>Personalflix</title>
+  <title>Personalflix — Private Entertainment</title>
 </head>
 <body>
   <header class="topbar">
@@ -22,19 +23,27 @@
     <section class="hero" id="hero">
       <div class="hero-shade"></div>
       <div class="hero-content">
-        <p class="eyebrow">YOUR PRIVATE VIDEO LIBRARY</p>
-        <h1>Watch what<br>you love.</h1>
-        <p class="hero-copy">Satu tempat untuk mengelola koleksi video pribadi.</p>
-        <button class="primary-btn" id="browseBtn">Explore library <span>→</span></button>
+        <p class="eyebrow">YOUR PRIVATE ENTERTAINMENT SANCTUARY</p>
+        <h1>Your time.<br>Your pleasure.</h1>
+        <p class="hero-copy">
+          Dunia mungkin penuh masalah. Setidaknya urusan tontonan, lu yang pegang kendali.
+        </p>
+        <button class="primary-btn" id="browseBtn">
+          Start Watching <span>→</span>
+        </button>
+        <p class="hero-tagline">Semoga tontonan malam ini memuaskan. 😉</p>
       </div>
     </section>
 
     <section class="toolbar">
       <div>
         <h2>Discover</h2>
-        <p id="libraryCount">Koleksi pribadi lu</p>
+        <p id="libraryCount">Koleksi pribadi, rahasia negara.</p>
       </div>
-      <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Cari koleksi..." autocomplete="off"></label>
+      <label class="search">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="Cari tontonan..." autocomplete="off">
+      </label>
     </section>
 
     <nav class="tabs" aria-label="Library filters">
@@ -46,10 +55,24 @@
     <section id="videoGrid" class="video-grid" aria-live="polite">
       <div class="empty-state">
         <div class="empty-icon">▣</div>
-        <h3>Library masih kosong</h3>
-        <p>Tambahkan video milik lu melalui tombol +.</p>
+        <h3>Belum ada amunisi hiburan.</h3>
+        <p>Tambahkan koleksi favorit lu. Jangan biarkan malam berlalu begitu saja.</p>
       </div>
     </section>
+
+    <footer class="site-footer">
+      <div class="footer-brand">PERSONAL<span>FLIX</span></div>
+      <p class="footer-quote">
+        "Hidup memang berat, setidaknya pilih tontonan yang tepat."
+      </p>
+      <p class="footer-blessing">
+        Happy Watching! Semoga pengalaman menonton lu menyenangkan,
+        memuaskan, dan tentunya tanpa gangguan buffering.
+      </p>
+      <div class="footer-divider"></div>
+      <p class="footer-credit">POWERED BY GOOD TASTE & QUESTIONABLE DECISIONS.</p>
+      <p class="footer-copy">PERSONALFLIX © 2026 · YOUR PRIVATE LIBRARY</p>
+    </footer>
   </main>
 
   <nav class="bottom-nav">
@@ -60,15 +83,35 @@
 
   <dialog id="adminDialog" class="sheet">
     <form method="dialog" class="sheet-head">
-      <div><p class="eyebrow">PERSONAL LIBRARY</p><h2>Add a video</h2></div>
+      <div>
+        <p class="eyebrow">PERSONAL LIBRARY</p>
+        <h2>Add a video</h2>
+      </div>
       <button class="close-btn" aria-label="Close">×</button>
     </form>
+
     <form id="addForm" class="form">
-      <label>Judul video<input name="title" required maxlength="120" placeholder="Nama video"></label>
-      <label>URL video langsung (opsional)<input name="url" type="url" placeholder="https://example.com/video.mp4"></label>
-      <label>URL poster (opsional)<input name="poster" type="url" placeholder="https://example.com/poster.jpg"></label>
-      <label>Kategori<input name="category" maxlength="40" placeholder="Favorites, Documentary..."></label>
-      <p class="form-note">Gunakan tautan video yang memang boleh diakses dan disimpan. PWA tidak mengambil video dari situs yang memblokir embedding atau download.</p>
+      <label>Judul video
+        <input name="title" required maxlength="120" placeholder="Nama video">
+      </label>
+
+      <label>URL video langsung (opsional)
+        <input name="url" type="url" placeholder="https://example.com/video.mp4">
+      </label>
+
+      <label>URL poster (opsional)
+        <input name="poster" type="url" placeholder="https://example.com/poster.jpg">
+      </label>
+
+      <label>Kategori
+        <input name="category" maxlength="40" placeholder="Favorites, Documentary...">
+      </label>
+
+      <p class="form-note">
+        Masukkan tautan video yang memang boleh diakses dan disimpan.
+        Tidak semua situs mendukung pemutaran atau pengunduhan dari aplikasi ini.
+      </p>
+
       <button class="primary-btn full" type="submit">Save to library</button>
     </form>
   </dialog>
@@ -79,10 +122,13 @@
       <button id="closePlayer" class="close-btn" aria-label="Close player">×</button>
     </div>
     <video id="videoPlayer" controls playsinline preload="metadata"></video>
-    <p id="playerMessage" class="player-message"></p>
+    <p id="playerMessage" class="player-message">
+      Enjoy your private time. 😉
+    </p>
   </dialog>
 
   <div id="toast" class="toast" role="status"></div>
+
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>
