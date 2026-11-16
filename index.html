@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09090d">
+  <meta name="description" content="Personal video library">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./css/style.css">
+  <title>Personalflix</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Personalflix home">PERSONAL<span>FLIX</span></a>
+    <div class="top-actions">
+      <button id="syncBtn" class="icon-btn" title="Refresh catalog" aria-label="Refresh catalog">↻</button>
+      <button id="adminBtn" class="avatar" title="Manage library">＋</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <p class="eyebrow">YOUR PRIVATE VIDEO LIBRARY</p>
+        <h1>Watch what<br>you love.</h1>
+        <p class="hero-copy">Satu tempat untuk mengelola koleksi video pribadi.</p>
+        <button class="primary-btn" id="browseBtn">Explore library <span>→</span></button>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div>
+        <h2>Discover</h2>
+        <p id="libraryCount">Koleksi pribadi lu</p>
+      </div>
+      <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Cari koleksi..." autocomplete="off"></label>
+    </section>
+
+    <nav class="tabs" aria-label="Library filters">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="offline">Offline</button>
+      <button class="tab" data-filter="recent">Recently added</button>
+    </nav>
+
+    <section id="videoGrid" class="video-grid" aria-live="polite">
+      <div class="empty-state">
+        <div class="empty-icon">▣</div>
+        <h3>Library masih kosong</h3>
+        <p>Tambahkan video milik lu melalui tombol +.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="home"><span>⌂</span>Home</button>
+    <button class="nav-item" data-view="offline"><span>⇩</span>Offline</button>
+    <button class="nav-item" data-view="admin"><span>＋</span>Manage</button>
+  </nav>
+
+  <dialog id="adminDialog" class="sheet">
+    <form method="dialog" class="sheet-head">
+      <div><p class="eyebrow">PERSONAL LIBRARY</p><h2>Add a video</h2></div>
+      <button class="close-btn" aria-label="Close">×</button>
+    </form>
+    <form id="addForm" class="form">
+      <label>Judul video<input name="title" required maxlength="120" placeholder="Nama video"></label>
+      <label>URL video langsung (opsional)<input name="url" type="url" placeholder="https://example.com/video.mp4"></label>
+      <label>URL poster (opsional)<input name="poster" type="url" placeholder="https://example.com/poster.jpg"></label>
+      <label>Kategori<input name="category" maxlength="40" placeholder="Favorites, Documentary..."></label>
+      <p class="form-note">Gunakan tautan video yang memang boleh diakses dan disimpan. PWA tidak mengambil video dari situs yang memblokir embedding atau download.</p>
+      <button class="primary-btn full" type="submit">Save to library</button>
+    </form>
+  </dialog>
+
+  <dialog id="playerDialog" class="player-dialog">
+    <div class="player-head">
+      <strong id="playerTitle">Now playing</strong>
+      <button id="closePlayer" class="close-btn" aria-label="Close player">×</button>
+    </div>
+    <video id="videoPlayer" controls playsinline preload="metadata"></video>
+    <p id="playerMessage" class="player-message"></p>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
