@@ -4,20 +4,60 @@ import {downloadVideo} from "./downloader.js";
 const $=s=>document.querySelector(s);
 const grid=$("#videoGrid"),admin=$("#adminDialog"),player=$("#playerDialog"),videoEl=$("#videoPlayer");
 let videos=[],filter="all",query="";
+const activeDownloads=new Map();
 const id=()=>crypto.randomUUID();
-function toast(message){const el=$("#toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2400);}
+function toast(message){const el=$("#toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2600);}
 function escapeHTML(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function prettyBytes(n){if(!n)return "Ukuran belum diketahui";const units=["B","KB","MB","GB","TB"];let i=0;while(n>=1024&&i<units.length-1){n/=1024;i++;}return `${n.toFixed(i?1:0)} ${units[i]}`;}
 async function refresh(){videos=await getAllVideos();render();}
-function render(){const list=videos.filter(v=>(filter!=="offline"||v.offline)&&(!query||(v.title+" "+v.category).toLowerCase().includes(query)));$("#libraryCount").textContent=`${videos.length} video${videos.length===1?"":"s"} in your library`;if(!list.length){grid.innerHTML=`<div class="empty-state"><div class="empty-icon">▣</div><h3>${query?"Tidak ditemukan":"Library masih kosong"}</h3><p>${query?"Coba kata kunci lain.":"Tambahkan video melalui tombol +."}</p></div>`;return;}grid.innerHTML=list.map(v=>`<article class="video-card" data-id="${escapeHTML(v.id)}"><div class="poster">${v.poster?`<img loading="lazy" src="${escapeHTML(v.poster)}" alt="">`:`<span class="poster-fallback">▶</span>`}${v.offline?'<span class="offline-tag">OFFLINE</span>':""}</div><h3 class="card-title">${escapeHTML(v.title)}</h3><p class="card-meta">${escapeHTML(v.category||"Personal library")}</p></article>`).join("");grid.querySelectorAll(".video-card").forEach(card=>card.addEventListener("click",()=>openVideo(card.dataset.id)));}
-async function openVideo(videoId){const v=videos.find(x=>x.id===videoId);if(!v)return;$("#playerTitle").textContent=v.title;$("#playerMessage").textContent="";try{if(v.offline&&v.fileName){const file=await getOPFSFile(v.fileName);videoEl.src=URL.createObjectURL(file);$("#playerMessage").textContent="Diputar dari penyimpanan offline.";}else if(v.url){videoEl.src=v.url;$("#playerMessage").textContent="Pemutaran online bergantung pada izin sumber, CORS, dan kebijakan embedding.";}else{toast("Video ini belum memiliki sumber pemutaran.");return;}player.showModal();}catch(e){toast(e.message);}}
+function render(){
+  let list=videos.filter(v=>(filter!=="offline"||v.offline)&&(!query||(v.title+" "+v.category).toLowerCase().includes(query)));
+  if(filter==="recent")list=list.slice(0,12);
+  $("#libraryCount").textContent=`${videos.length} video${videos.length===1?"":"s"} in your library`;
+  if(!list.length){grid.innerHTML=`<div class="empty-state"><div class="empty-icon">▣</div><h3>${query?"Tidak ditemukan":"Library masih kosong"}</h3><p>${query?"Coba kata kunci lain.":"Tambahkan video melalui tombol +."}</p></div>`;return;}
+  grid.innerHTML=list.map(v=>`<article class="video-card" data-id="${escapeHTML(v.id)}"><div class="poster">${v.poster?`<img loading="lazy" src="${escapeHTML(v.poster)}" alt="">`:`<span class="poster-fallback">▶</span>`}${v.offline?'<span class="offline-tag">OFFLINE</span>':""}</div><h3 class="card-title">${escapeHTML(v.title)}</h3><p class="card-meta">${escapeHTML(v.category||"Personal library")}</p><div class="card-actions">${v.offline?`<span class="download-done">✓ Tersimpan · ${prettyBytes(v.downloadedBytes)}</span>`:`<button class="download-btn" data-download="${escapeHTML(v.id)}" ${!v.url?"disabled title='Tambahkan URL video langsung terlebih dahulu'":""}>↓ Download offline</button>`}<div class="download-progress" id="progress-${escapeHTML(v.id)}" hidden><div class="progress-track"><span></span></div><small>Menyiapkan download…</small><button class="cancel-download" data-cancel="${escapeHTML(v.id)}">Batal</button></div></div></article>`).join("");
+  grid.querySelectorAll(".video-card").forEach(card=>card.addEventListener("click",e=>{if(e.target.closest("button"))return;openVideo(card.dataset.id);}));
+  grid.querySelectorAll("[data-download]").forEach(btn=>btn.addEventListener("click",()=>startDownload(btn.dataset.download)));
+  grid.querySelectorAll("[data-cancel]").forEach(btn=>btn.addEventListener("click",()=>activeDownloads.get(btn.dataset.cancel)?.abort()));
+}
+async function startDownload(videoId){
+  const v=videos.find(x=>x.id===videoId);if(!v||!v.url||activeDownloads.has(videoId))return;
+  const controller=new AbortController();activeDownloads.set(videoId,controller);
+  const box=$(`#progress-${CSS.escape(videoId)}`);if(box)box.hidden=false;
+  const button=grid.querySelector(`[data-download="${CSS.escape(videoId)}"]`);if(button)button.hidden=true;
+  const label=box?.querySelector("small"),bar=box?.querySelector(".progress-track span");
+  try{
+    await downloadVideo(v,p=>{
+      if(label)label.textContent=`${prettyBytes(p.received)}${p.total?` / ${prettyBytes(p.total)} · ${p.percent}%`:" diterima"}`;
+      if(bar)bar.style.width=`${p.percent??0}%`;
+    },controller.signal);
+    toast("Download selesai! Video tersedia offline.");
+  }catch(e){toast(e.name==="AbortError"?"Download dibatalkan.":`Download gagal: ${e.message}`);}
+  finally{activeDownloads.delete(videoId);await refresh();}
+}
+async function openVideo(videoId){
+  const v=videos.find(x=>x.id===videoId);if(!v)return;
+  $("#playerTitle").textContent=v.title;$("#playerMessage").textContent="";
+  try{
+    if(v.offline&&v.fileName){const file=await getOPFSFile(v.fileName);videoEl.src=URL.createObjectURL(file);$("#playerMessage").textContent="Diputar dari penyimpanan offline.";}
+    else if(v.url){videoEl.src=v.url;$("#playerMessage").textContent="Pemutaran online bergantung pada izin sumber, CORS, dan kebijakan embedding.";}
+    else{toast("Video ini belum memiliki sumber pemutaran.");return;}
+    player.showModal();
+  }catch(e){toast(e.message);}
+}
 $("#addForm").addEventListener("submit",async e=>{e.preventDefault();const data=new FormData(e.currentTarget);const item={id:id(),title:data.get("title").trim(),url:data.get("url").trim(),poster:data.get("poster").trim(),category:data.get("category").trim(),createdAt:Date.now(),offline:false};await saveVideo(item);e.currentTarget.reset();admin.close();await refresh();toast("Added to your library");});
 $("#adminBtn").onclick=()=>admin.showModal();
 $("#browseBtn").onclick=()=>$("#videoGrid").scrollIntoView({behavior:"smooth"});
 $("#searchInput").addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();render();});
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render();});
 document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));b.classList.add("active");if(b.dataset.view==="admin")admin.showModal();else{filter=b.dataset.view==="offline"?"offline":"all";document.querySelector(`.tab[data-filter="${filter}"]`)?.click();}});
-$("#closePlayer").onclick=()=>{videoEl.pause();videoEl.removeAttribute("src");videoEl.load();player.close();};
+$("#closePlayer").onclick=()=>{videoEl.pause();if(videoEl.src.startsWith("blob:"))URL.revokeObjectURL(videoEl.src);videoEl.removeAttribute("src");videoEl.load();player.close();};
 $("#syncBtn").onclick=async()=>{await refresh();toast("Local library refreshed");};
 $("#videoGrid").addEventListener("contextmenu",async e=>{const card=e.target.closest(".video-card");if(!card)return;e.preventDefault();const v=videos.find(x=>x.id===card.dataset.id);if(!v)return;if(confirm(`Hapus "${v.title}" dari katalog${v.offline?" dan penyimpanan offline":""}?`)){if(v.fileName)await removeOPFSFile(v.fileName);await deleteVideo(v.id);await refresh();toast("Video removed");}});
-async function init(){if("serviceWorker"in navigator)navigator.serviceWorker.register("./service-worker.js").catch(()=>{});try{await navigator.storage.persist();const s=await storageStatus();console.info("Storage status",s);}catch(e){console.warn(e);}await refresh();}
+async function init(){
+  if("serviceWorker"in navigator)navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  try{await navigator.storage.persist();const s=await storageStatus();console.info("Storage status",s);}
+  catch(e){console.warn(e);}
+  await refresh();
+}
 init();
